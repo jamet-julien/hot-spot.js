@@ -38,7 +38,7 @@ HotSpot.prototype.analyse = function(){
 
 	this._fOnReady.apply( this);
 
-}
+};
 
 /**
  * [_makeAdjust description]
@@ -81,7 +81,7 @@ HotSpot.prototype._makeAdjust = function( oZone){
 	}
 
 	return oZone;
-}
+};
 
 /**
  * [getResult description]
@@ -92,10 +92,10 @@ HotSpot.prototype.getResult = function(){
 	var oZone = {
 		x : Math.round( this._oPosWhite.sumX / this._oPosWhite.count),
 		y : Math.round( this._oPosWhite.sumY / this._oPosWhite.count)
-	}
+	};
 
 	return this._makeAdjust( oZone);
-}
+};
 
 /**
  * [getPreview description]
@@ -103,7 +103,7 @@ HotSpot.prototype.getResult = function(){
  */
 HotSpot.prototype.getPreview = function(){
 	return this._oCanvas;
-}
+};
 
 /**
  * [getPixel description]
@@ -180,7 +180,7 @@ HotSpot.prototype._greyFilter = function( r, g, b){
 	}
 
 	return { value : 'white'};
-}
+};
 
 /**
  * [_tintMiddle description]
@@ -215,7 +215,7 @@ HotSpot.prototype._tintMiddle = function(){
 	}
 
 	return iTotal/iCount;
-}
+};
 
 /**
  * [onReady description]
@@ -288,4 +288,4 @@ HotSpot.prototype._computeMap = function( aMap){
 	}
 
 	return oOutput;
-}
+};
