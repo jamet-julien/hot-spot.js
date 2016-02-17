@@ -54,6 +54,7 @@ HotSpot.prototype.findDetailValue = function( _aMap, iRange){
 
 	if( iRange){
 		_aMap[4]= parseInt( iRange);
+
 	}
 
 	return _aMap;
@@ -70,6 +71,9 @@ HotSpot.prototype.analyse = function( iRange){
 	_aMap = this.findDetailValue( this._aMap, iRange);
 
 	var oData  = this._computeMap( _aMap);
+
+	console.log( _aMap);
+
 	this._oContext.putImageData( oData, 0, 0);
 
 	this._fOnReady.apply( this);
@@ -149,11 +153,13 @@ HotSpot.prototype._createImageData = function( iWidth, iHeight) {
  * @param  {[type]} y [description]
  * @return {[type]}   [description]
  */
-HotSpot.prototype._pushWhite = function( x, y){
+HotSpot.prototype._pushWhite = function( x, y, aColor){
 
-	this._oPosWhite.count++;
-	this._oPosWhite.sumX += x;
-	this._oPosWhite.sumY += y;
+	var iMoyenne = Math.round(( aColor[0] + aColor[1]+ aColor[2])/30);
+
+	this._oPosWhite.count += (1 * (iMoyenne - this._iTintMiddle));
+	this._oPosWhite.sumX += (x * (iMoyenne - this._iTintMiddle));
+	this._oPosWhite.sumY += (y * (iMoyenne - this._iTintMiddle));
 
 };
 
@@ -168,9 +174,7 @@ HotSpot.prototype._greyFilter = function( r, g, b){
 
 	var iMoyenne = ( r + g+ b)/3;
 
- var iLimit = ( this._aMap[4] > 0)? this._iTintMiddle : 0;
-
-	if( iMoyenne > iLimit){
+	if( iMoyenne >  this._iTintMiddle ){
 		return { value : 'white'};
 	}
 
@@ -274,7 +278,7 @@ HotSpot.prototype._computeMap = function( aMap){
 			var oColor = this._greyFilter( r, g, b);
 
 			if( oColor.value == 'white'){
-				this._pushWhite( x, y);
+				this._pushWhite( x, y, [r, g, b]);
 			}
 
 			oDst[iDstOff]   = r;

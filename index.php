@@ -24,6 +24,25 @@
                 outline:1200px solid rgba(255, 255, 255, 0.85);
             }
 
+              .zone::after, .zone::before{
+                content   : "";
+                position  : absolute;
+                top       : 50%;
+                left      : 50%;
+                background: red;
+                width     : 20px;
+                height    : 20px;
+                transform : translateX(-50%)translateY(-50%);
+              }
+              .zone::after{
+                width     : 2px;
+                height    : 20px;
+              }
+              .zone::before{
+                width     : 20px;
+                height    : 2px;
+              }
+
             #result img{
             }
 
@@ -137,8 +156,6 @@
         oRange.addEventListener( 'change', function(){
               oSpot.analyse( this.value);
             }, false);
-
-        
 
         </script>
     </body>
