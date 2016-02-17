@@ -11,6 +11,11 @@ var HotSpot = function( oImg){
 
 	this._oPixel      ='';
 	this._iTintMiddle =127.5;
+	this._iTintMax =0;
+	this._iTintMin =255;
+
+	this._iDelta   = 0;
+	this._iNumPixel= 0;
 
 	this._oTin      = {
 				red:0,
@@ -21,18 +26,20 @@ var HotSpot = function( oImg){
 
 	this._oPosWhite = { count : 0, sumX : 0, sumY : 0};
 
-	this._aMap      = [ 0,  1 , 0,
-									    1, -5, 1,
-									    0,  1 , 0];
+	this._aMap      = [];
 
 
 	this._oImg        = oImg;
+
+	this.reset();
 
 };
 
 HotSpot.prototype.reset = function(){
 	this._oPixel      ='';
 	this._iTintMiddle =127.5;
+	this._iTintMax    = 0;
+	this._iTintMin    = 255;
 
 	this._oTin      = {
 				red:0,
@@ -55,6 +62,12 @@ HotSpot.prototype.findDetailValue = function( _aMap, iRange){
 	if( iRange){
 		_aMap[4]= parseInt( iRange);
 
+	}else {
+
+		this._iDelta    = Math.round(( iNumPixel / ( 255 - ( this._iTintMax + this._iTintMin )))/10000) - 1;
+		this._iNumPixel = this._oImg.width * this._oImg.height;
+		_aMap[4]  = ( Number.isFinite(this._iDelta))? -this._iDelta : -2;
+
 	}
 
 	return _aMap;
@@ -66,13 +79,32 @@ HotSpot.prototype.analyse = function( iRange){
 	this.reset();
 
 	this._oPixel      = this._findPixels( this._oImg);
-	this._iTintMiddle = this._tintMiddle();
+	this._tintMiddle();
+
+
+
+
 
 	_aMap = this.findDetailValue( this._aMap, iRange);
 
+	if( iRange){
+			_aMap[4]= parseInt( iRange);
+	}
+
+	oLog = {
+		iNumPixel   : this._iNumPixel,
+		iTintMiddle : this._iTintMiddle,
+		iTintMax    : this._iTintMax,
+		iTintMin    : this._iTintMin,
+		test        : this._iDelta,
+		aMap        : _aMap[4]
+	};
+
+	console.log( oLog);
+
 	var oData  = this._computeMap( _aMap);
 
-	console.log( _aMap);
+
 
 	this._oContext.putImageData( oData, 0, 0);
 
@@ -204,18 +236,22 @@ HotSpot.prototype._tintMiddle = function(){
 			var r = aSrc[ iGoodP];
       var g = aSrc[ iGoodP + 1];
       var b = aSrc[ iGoodP + 2];
-			var sTin = 'Default';
 
-      var iMoyenne = ( r+ g+ b)/3;
+      var iMoyenne = Math.ceil(( r+ g+ b)/3);
 
       iCount++;
       iTotal += iMoyenne;
 
-		}
+			this._iTintMax    = Math.max(  iMoyenne, this._iTintMax);
+			this._iTintMin    = Math.min(  iMoyenne, this._iTintMin);
 
 	}
 
-	return iTotal/iCount;
+	}
+
+
+	this._iTintMiddle = Math.ceil( iTotal/iCount);
+
 };
 
 /**

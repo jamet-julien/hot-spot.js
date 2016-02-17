@@ -21,7 +21,7 @@
                 width:0px;
                 height:0px;
                 border:150px solid transparent;
-                outline:1200px solid rgba(255, 255, 255, 0.85);
+                outline:1200px solid rgba(255, 255, 255, 0.95);
             }
 
               .zone::after, .zone::before{
@@ -82,7 +82,7 @@
 
     <body>
       <h1>SMART CROPPER</h1>
-      <input type="range" id="range" value="0" max="14" min="-14" step="1"/><br/>
+      <input type="text" id="range" value="-5"/><br/>
         <div id="result"></div>
         <div id="debug"></div><br/>
         <input type="text" name="width" id="width" value="300"/>X
