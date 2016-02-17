@@ -12,13 +12,16 @@
                 position : relative;
                 overflow:hidden;
             }
+            #debug, #result{
+              display: inline-block;
+            }
 
             .zone{
                 position:absolute;
                 width:0px;
                 height:0px;
                 border:150px solid transparent;
-                outline:600px solid white;
+                outline:1200px solid rgba(255, 255, 255, 0.85);
             }
 
             #result img{
@@ -59,45 +62,83 @@
     </head>
 
     <body>
-        <div id="result"><img src="img/test-<?= rand( 1, 11) ?>.jpg" id="img"/></div>
+      <h1>SMART CROPPER</h1>
+      <input type="range" id="range" value="0" max="14" min="-14" step="1"/><br/>
+        <div id="result"></div>
+        <div id="debug"></div><br/>
+        <input type="text" name="width" id="width" value="300"/>X
+        <input type="text" name="height" id="height" value="300"/><br/>
+        <input type="file" name="image" id="image"/>
 
-        <div id="btn">Smart crop !!</div>
 
 		<script type="text/javascript" src="./js/plugin/hotspot.class.js"></script>
 
         <script>
+        function treatImage(){
 
-            var oSpot, oImg  = document.getElementById("img");
-            var bCrop = false;
-            document.getElementById('btn').addEventListener('click', function(){
+          var dataURL = oReader.result,
+              oImage  = document.createElement( 'img');
+              iWidth  = parseInt( oWidth.value),
+              iHeight = parseInt( oHeight.value),
+              iX = ( iWidth > 0)? Math.round( iWidth/2)  : 150,
+              iY = (iHeight > 0)? Math.round( iHeight/2) : 150;
 
-                if( !bCrop){
+          oImage.src  = dataURL;
 
-                    oSpot = new HotSpot( oImg);
-                    var self = this;
-                    oSpot.onReady( function(){
-                        var oZone           = this.getResult();
-                        var oHotZone        = document.createElement('div');
-                        oHotZone.className  = 'zone';
-                        oHotZone.style.top  = (oZone.y - 150)+'px';
-                        oHotZone.style.left = (oZone.x - 150)+'px';
-                        document.getElementById("result").appendChild( oHotZone);
+          oSpot = new HotSpot( oImage);
+          oSpot.onReady( function(){
 
-                        self.innerHTML = "New Image ?";
-                        bCrop = true;
+            oPreview.innerHTML =
+            oDebug.innerHTML   = '';
 
-                    }).analyse();
-                }else{
-                    location.reload();
-                }
+            oPreview.appendChild( oImage);
+            var oZone           = this.getResult(),
+                oHotZone        = document.createElement('div');
 
-            });
+
+            var iTop      = Math.round( oZone.y - iX),
+                iLeft     = Math.round( oZone.x - iY);
 
 
 
-            /*
-            */
+            oHotZone.className         = 'zone';
+            oHotZone.style.top         = iTop +'px';
+            oHotZone.style.left        = iLeft +'px';
+            oHotZone.style.borderWidth = iY+"px "+ iX+"px";
 
+            oPreview.appendChild( oHotZone);
+            debugPreview = oSpot.getPreview();
+            debugPreview.style.width = "250px";
+            oDebug.appendChild( debugPreview);
+
+          }).analyse();
+
+        }
+
+
+        var oReader   = new FileReader(),
+            oSpot     = null,
+            oPreview  = document.getElementById( 'result'),
+            oDebug    = document.getElementById( 'debug'),
+            oInput    = document.getElementById( 'image'),
+            oWidth    = document.getElementById( 'width'),
+            oRange    = document.getElementById( 'range'),
+            oHeight   = document.getElementById( 'height');
+
+
+        oReader.onload = treatImage;
+
+
+        oInput.addEventListener( 'change', function(){
+              oReader.readAsDataURL( this.files[0]);
+
+            }, false);
+
+        oRange.addEventListener( 'change', function(){
+              oSpot.analyse( this.value);
+            }, false);
+
+        
 
         </script>
     </body>

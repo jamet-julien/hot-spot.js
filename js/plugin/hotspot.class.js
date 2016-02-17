@@ -12,75 +12,68 @@ var HotSpot = function( oImg){
 	this._oPixel      ='';
 	this._iTintMiddle =127.5;
 
+	this._oTin      = {
+				red:0,
+				green:0,
+				blue:0
+	};
+
 
 	this._oPosWhite = { count : 0, sumX : 0, sumY : 0};
 
-	this._aMap      = [ 0,  1, 0,
-					    1, -4, 1,
-					    0,  1, 0];
+	this._aMap      = [ 0,  1 , 0,
+									    1, -5, 1,
+									    0,  1 , 0];
 
 
 	this._oImg        = oImg;
 
-	//this._iTintMiddle = 127.5;
+};
+
+HotSpot.prototype.reset = function(){
+	this._oPixel      ='';
+	this._iTintMiddle =127.5;
+
+	this._oTin      = {
+				red:0,
+				green:0,
+				blue:0
+	};
+
+
+	this._oPosWhite = { count : 0, sumX : 0, sumY : 0};
+
+	this._aMap      = [ 0,  1 , 0,
+									    1, -5, 1,
+									    0,  1 , 0];
+
 
 };
 
-HotSpot.prototype.analyse = function(){
+HotSpot.prototype.findDetailValue = function( _aMap, iRange){
 
+	if( iRange){
+		_aMap[4]= parseInt( iRange);
+	}
+
+	return _aMap;
+};
+
+HotSpot.prototype.analyse = function( iRange){
+	var _aMap;
+
+	this.reset();
 
 	this._oPixel      = this._findPixels( this._oImg);
 	this._iTintMiddle = this._tintMiddle();
 
-	var oData         = this._computeMap( this._aMap);
-	this._oContext.putImageData( oData, 0, 0);
+	_aMap = this.findDetailValue( this._aMap, iRange);
 
+	var oData  = this._computeMap( _aMap);
+	this._oContext.putImageData( oData, 0, 0);
 
 	this._fOnReady.apply( this);
 
-};
-
-/**
- * [_makeAdjust description]
- * @return {[type]} [description]
- */
-HotSpot.prototype._makeAdjust = function( oZone){
-
-	var iDelta = Math.round((this._oImg.width / this._oImg.height)*10);
-
-	var iTerXTop    = this._oImg.width  / 3;
-	var iTerXMiddle = this._oImg.width  / 2;
-	var iTerXBottom = iTerXTop * 2;
-
-	var iTerYLeft   = this._oImg.height / 3;
-	var iTerYMiddle = this._oImg.height / 2;
-	var iTerYRight  = iTerYLeft * 2;
-
-	if( Math.abs(oZone.x - iTerXTop) < iDelta ){
-		oZone.x = iTerXTop;
-	}
-
-	if( Math.abs(iTerXBottom - oZone.x) < iDelta ){
-		oZone.x = iTerXBottom;
-	}
-
-	if( Math.abs(oZone.y - iTerYLeft) < iDelta ){
-		oZone.y = iTerYLeft;
-	}
-
-	if( Math.abs(iTerYRight - oZone.y) < iDelta ){
-		oZone.y = iTerYRight;
-	}
-
-	if( Math.abs(oZone.x - iTerXMiddle) < iDelta ){
-		oZone.x = iTerXMiddle;
-	}
-
-	if( Math.abs(iTerYMiddle - oZone.y) < iDelta ){
-		oZone.y = iTerYMiddle;
-	}
-
-	return oZone;
 };
 
 /**
@@ -94,7 +87,7 @@ HotSpot.prototype.getResult = function(){
 		y : Math.round( this._oPosWhite.sumY / this._oPosWhite.count)
 	};
 
-	return this._makeAdjust( oZone);
+	return oZone;
 };
 
 /**
@@ -173,13 +166,15 @@ HotSpot.prototype._pushWhite = function( x, y){
  */
 HotSpot.prototype._greyFilter = function( r, g, b){
 
-	var iMoyenne = ( r+ g+ b)/3;
+	var iMoyenne = ( r + g+ b)/3;
 
-	if( iMoyenne < this._iTintMiddle){
-		return { value : 'black'};
+ var iLimit = ( this._aMap[4] > 0)? this._iTintMiddle : 0;
+
+	if( iMoyenne > iLimit){
+		return { value : 'white'};
 	}
 
-	return { value : 'white'};
+	return { value : 'black'};
 };
 
 /**
@@ -203,13 +198,15 @@ HotSpot.prototype._tintMiddle = function(){
 			var iGoodP = (( iSrcWidth * y) + x) * 4;
 
 			var r = aSrc[ iGoodP];
-            var g = aSrc[ iGoodP + 1];
-            var b = aSrc[ iGoodP + 2];
+      var g = aSrc[ iGoodP + 1];
+      var b = aSrc[ iGoodP + 2];
+			var sTin = 'Default';
 
-            var iMoyenne = ( r+ g+ b)/3;
+      var iMoyenne = ( r+ g+ b)/3;
 
-            iCount++;
-            iTotal += iMoyenne;
+      iCount++;
+      iTotal += iMoyenne;
+
 		}
 
 	}
@@ -254,7 +251,7 @@ HotSpot.prototype._computeMap = function( aMap){
 
 			var sy     = y;
 			var sx     = x;
-			var iDstOff = (y*w+x)*4;
+			var iDstOff = ( y * w + x)*4;
 
 			var r = 0, g = 0, b = 0, a=0;
 
