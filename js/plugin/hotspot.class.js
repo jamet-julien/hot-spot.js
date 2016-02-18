@@ -11,11 +11,20 @@ var HotSpot = function( oImg){
 
 	this._oPixel      ='';
 	this._iTintMiddle =127.5;
-	this._iTintMax =0;
-	this._iTintMin =255;
+	this._iRatio      = 0;
+	this._iRatioMinMax=0;
+	this._oTintMax    ={
+		value : 0,
+		num   : 0
+	};
+	this._oTintMin    ={
+		value : 255,
+		num   : 0
+	};
 
-	this._iDelta   = 0;
-	this._iNumPixel= 0;
+	this._iDelta_1      = 0;
+	this._iDelta_2      = 0;
+	this._iNumPixel   = 0;
 
 	this._oTin      = {
 				red:0,
@@ -36,10 +45,16 @@ var HotSpot = function( oImg){
 };
 
 HotSpot.prototype.reset = function(){
-	this._oPixel      ='';
-	this._iTintMiddle =127.5;
-	this._iTintMax    = 0;
-	this._iTintMin    = 255;
+	this._oPixel      = '';
+	this._iTintMiddle = 127.5;
+	this._oTintMax    = {
+		value : 0,
+		num   : 0
+	};
+	this._oTintMin    ={
+		value : 255,
+		num   : 0
+	};
 
 	this._oTin      = {
 				red:0,
@@ -51,7 +66,7 @@ HotSpot.prototype.reset = function(){
 	this._oPosWhite = { count : 0, sumX : 0, sumY : 0};
 
 	this._aMap      = [ 0,  1 , 0,
-									    1, -5, 1,
+									    1, -5 , 1,
 									    0,  1 , 0];
 
 
@@ -64,9 +79,25 @@ HotSpot.prototype.findDetailValue = function( _aMap, iRange){
 
 	}else {
 
-		this._iDelta    = Math.round(( iNumPixel / ( 255 - ( this._iTintMax + this._iTintMin )))/10000) - 1;
 		this._iNumPixel = this._oImg.width * this._oImg.height;
-		_aMap[4]  = ( Number.isFinite(this._iDelta))? -this._iDelta : -2;
+
+		this._iDelta_1    = Math.round(( this._iNumPixel / ( 255 - ( this._oTintMax.value + this._oTintMin.value)))/10000) - 1;
+		this._iDelta_2    = Math.round(( this._iNumPixel / ( 255 - (( this._oTintMax.value + this._oTintMin.value + this._iTintMiddle)/3)))/1000) - 1;
+
+		this._iRatio     = ((this._oTintMax.num + this._oTintMin.num)*100)/ this._iNumPixel;
+		this._iRatioMinMax  = ((this._oTintMax.num )*100)/ this._oTintMin.num;
+
+		if( this._iRatio < 3){
+
+			_aMap[4]  = ( Number.isFinite( 	this._iDelta_2))? this._iDelta_2 : -5;
+		}else{
+			_aMap[4]  = ( Number.isFinite( this._iDelta_1))? this._iDelta_1 :  -5;
+
+		}
+
+		if(  this._iRatioMinMax <= 100){
+			_aMap[4]  = _aMap[4] * -1;
+		}
 
 	}
 
@@ -81,23 +112,18 @@ HotSpot.prototype.analyse = function( iRange){
 	this._oPixel      = this._findPixels( this._oImg);
 	this._tintMiddle();
 
-
-
-
-
 	_aMap = this.findDetailValue( this._aMap, iRange);
 
-	if( iRange){
-			_aMap[4]= parseInt( iRange);
-	}
-
 	oLog = {
-		iNumPixel   : this._iNumPixel,
-		iTintMiddle : this._iTintMiddle,
-		iTintMax    : this._iTintMax,
-		iTintMin    : this._iTintMin,
-		test        : this._iDelta,
-		aMap        : _aMap[4]
+		iNumPixel    : this._iNumPixel,
+		iTintMiddle  : this._iTintMiddle,
+		oTintMax     : this._oTintMax,
+		oTintMin     : this._oTintMin,
+		iRatio       : this._iRatio,
+		iRatioMinMax : this._iRatioMinMax,
+		delta_1      : this._iDelta_1,
+		delta_2      : this._iDelta_2,
+		aMap         : _aMap[4]
 	};
 
 	console.log( oLog);
@@ -242,10 +268,18 @@ HotSpot.prototype._tintMiddle = function(){
       iCount++;
       iTotal += iMoyenne;
 
-			this._iTintMax    = Math.max(  iMoyenne, this._iTintMax);
-			this._iTintMin    = Math.min(  iMoyenne, this._iTintMin);
+			this._oTintMax.value    = Math.max(  iMoyenne, this._oTintMax.value);
+			this._oTintMin.value    = Math.min(  iMoyenne, this._oTintMin.value);
 
-	}
+			if( iMoyenne == this._oTintMin.value){
+				this._oTintMin.num++;
+			}
+
+			if( iMoyenne == this._oTintMax.value){
+				this._oTintMax.num++;
+			}
+
+		}
 
 	}
 
